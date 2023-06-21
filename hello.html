@@ -21,11 +21,12 @@
             const width = 60;
             const height = 60;
             const gap = 20;
+            let x, y;
 
             for (let i = 0; i < 5; i++) {
                 for (let j = 0; j < 5; j++) {
-                    let x = 100 + (width + gap) * i;
-                    let y = 100 + (height + gap) * j;
+                    x = 100 + (width + gap) * i;
+                    y = 100 + (height + gap) * j;
 
                     context.beginPath();
                     context.rect(x, y, width, height);
@@ -37,7 +38,6 @@
                         context.stroke();
                     }
                 }
-                
             }
 
             let year = 2042;
