@@ -36,9 +36,9 @@ const sketch = ({ context, width, height }) => {
 
         const dist = agent.pos.getDistance(other.pos);
 
-        if (dist > 200) continue;
+        if (dist > 300) continue;
 
-        context.lineWidth = math.mapRange(dist, 0, 200, 12, 1);
+        context.lineWidth = math.mapRange(dist, 0, 300, 12, 1);
 
         context.beginPath();
         context.moveTo(agent.pos.x, agent.pos.y);
