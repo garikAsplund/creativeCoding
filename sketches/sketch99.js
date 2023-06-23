@@ -9,8 +9,8 @@ const sketch = () => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
-    const rows = 5;
-    const radius = 2;
+    const rows = 99;
+    const radius = 1;
 
     for (let i = 0; i < rows; i++) {
       const columns = i + 1;
@@ -24,10 +24,14 @@ const sketch = () => {
 
         context.save();
 
-        context.fillStyle = 'white';
+        context.fillStyle = `rgb(
+          ${Math.floor(255 - 4 * j)},
+          ${Math.floor(255 - 7 * i)},
+            122, ${0.9 * (i + 1)}
+        )`;
 
         context.beginPath();
-        context.arc(x, y2, radius, 0, Math.PI * 2);
+        context.arc(x, y2, radius + (radius / rows ) * i , 0, Math.PI * 2);
         context.fill();
 
         context.restore();
