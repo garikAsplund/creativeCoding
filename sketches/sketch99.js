@@ -16,6 +16,11 @@ const params = {
   rate: 2.0,
 }
 
+function track(e) {
+  console.log("X - ", e.pageX, " Y - ", e.pageY);
+}
+addEventListener("mousemove", track, false);
+
 const sketch = () => {
   return ({ context, width, height, frame }) => {
     context.fillStyle = 'black';
@@ -46,7 +51,7 @@ const sketch = () => {
           ${Math.abs(255 - params.r * j / params.rate  - frame * 2) % 256},
           ${Math.abs(255 - params.g * i / params.rate - frame * 3) % 256},
           ${Math.abs(255 - params.b * -j / params.rate - frame * 3) % 256}, 
-          ${params.a * 0.5 * (i + 1)}
+          ${(params.a * 0.25 * (i + 1)) % frame }
         )`;
 
         context.translate(margx, margy);
