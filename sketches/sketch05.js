@@ -77,7 +77,7 @@ const sketch = ({ context, width, height }) => {
       const glyph = getGlyph(r);
 
       context.font = `${cell * 2}px ${fontFamily}`;
-      if (Math.random() < 0.1) context.font = `${cell * 6}px ${fontFamily}`;
+      if (Math.random() < 0.06) context.font = `${cell * 6}px ${fontFamily}`;
 
       context.fillStyle = 'white';
 
@@ -101,9 +101,9 @@ const getGlyph = (v) => {
   if (v < 50) return '';
   if (v < 100) return '.';
   if (v < 150) return '-';
-  if (v < 200) return '+';
+  if (v < 200) return '++';
 
-  const glyphs = '_= /'.split('');
+  const glyphs = '4_i/'.split('');
 
   return random.pick(glyphs);
 }
