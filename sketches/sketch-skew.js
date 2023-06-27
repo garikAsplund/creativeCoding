@@ -24,6 +24,13 @@ const sketch = ({ context, width, height }) => {
 
   const bgColor = random.pick(risoColors).hex;
 
+  const mask = {
+    radius: width * 0.4,
+    sides: 3,
+    x: width * 0.5,
+    y: height * 0.58,
+  }
+
   for (let i = 0; i < num; i++) {
     x = random.range(0, width);
     y = random.range(0, height);
@@ -36,15 +43,23 @@ const sketch = ({ context, width, height }) => {
 
     rects.push({ x, y, w, h, fill, stroke });
   }
+
   return ({ context, width, height }) => {
     context.fillStyle = bgColor;
     context.fillRect(0, 0, width, height);
 
+    context.save();
+    context.translate(mask.x, mask.y);
+
+    drawPolygon({ context, radius: mask.radius, sides: mask.sides });
+    
+    context.clip();
     rects.forEach(rect => {
       const { x, y, w, h, fill, stroke, blend } = rect;
       let shadowColor;
 
       context.save();
+      context.translate(-mask.x, -mask.y);
       context.translate(x, y);
       context.strokeStyle = stroke;
       context.fillStyle = fill;
@@ -74,7 +89,21 @@ const sketch = ({ context, width, height }) => {
       context.stroke();
     
       context.restore();
+
     });
+    context.restore();
+
+    context.save();
+    context.translate(mask.x, mask.y);
+
+    drawPolygon({ context, radius: mask.radius - context.lineWidth, sides: mask.sides });
+
+    context.globalCompositeOperation = 'color-burn'
+    context.lineWidth = 20;
+    context.strokeStyle = rectColors[0].hex;
+    context.stroke();
+
+    context.restore();
   };
 };
 
@@ -95,6 +124,20 @@ const drawSkewedRect = ({ context, w = 600, h = 200, degrees = -45 }) => {
   context.stroke();
   
   context.restore();
+}
+
+const drawPolygon = ({ context, radius = 100, sides = 3 }) => {
+  const slice = Math.PI * 2 / sides;
+
+  context.beginPath();
+  context.moveTo(0, -radius);
+
+  for (let i = 1; i < sides; i++) {
+    const theta = i * slice - Math.PI * 0.5;
+    context.lineTo(Math.cos(theta) * radius, Math.sin(theta) * radius);
+  }
+
+  context.closePath();
 }
 
 canvasSketch(sketch, settings);
