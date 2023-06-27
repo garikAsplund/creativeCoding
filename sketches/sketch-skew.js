@@ -31,7 +31,7 @@ const sketch = ({ context, width, height }) => {
 
   const mask = {
     radius: width * 0.3,
-    sides: 3,
+    sides: 5,
     x: width * 0.5,
     y: height * 0.55,
   }
@@ -145,6 +145,17 @@ const sketch = ({ context, width, height }) => {
     context.lineWidth = 10;
     context.strokeStyle = rectColors[1].hex;
     context.stroke();
+
+    context.restore();
+
+    context.save();
+    context.translate(mask.x, mask.y);
+
+    drawPolygon({ context, radius: 0.43 *(mask.radius - context.lineWidth), sides: mask.sides });
+
+    context.lineWidth = 10;
+    context.strokeStyle = bgColor;
+    context.fill();
 
     context.restore();
 
