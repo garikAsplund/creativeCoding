@@ -4,7 +4,8 @@ const math = require('canvas-sketch-util/math');
 const colormap = require('colormap');
 
 const settings = {
-  dimensions: [ 1080, 1080 ]
+  dimensions: [ 1080, 1080 ],
+  animate: true,
 };
 
 const sketch = ({ width, height }) => {
@@ -38,8 +39,8 @@ const sketch = ({ width, height }) => {
 
     n = random.noise2D(x, y, frequency, amplitude);
 
-    x += n;
-    y += n;
+    // x += n;
+    // y += n;
 
     lineWidth = math.mapRange(n, -amplitude, amplitude, 2, 20);
     color = colors[Math.floor(math.mapRange(n, -amplitude, amplitude, 0, amplitude))];
@@ -47,7 +48,7 @@ const sketch = ({ width, height }) => {
     points.push(new Point({ x, y, lineWidth, color }));
   }
 
-  return ({ context, width, height }) => {
+  return ({ context, width, height, frame }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
@@ -55,7 +56,14 @@ const sketch = ({ width, height }) => {
     context.translate(mx + cw * 0.5, my + ch * 0.5);
 
     context.strokeStyle = 'aqua';
-    context.lineWidth = 4;
+    context.lineWidth = 1;
+
+    points.forEach(point => {
+      n = random.noise2D(point.ix + frame * 3, point.iy, frequency, amplitude);
+
+      point.x = point.ix + n;
+      point.y = point.iy + n;
+    });
 
     let lastx, lasty;
 
@@ -65,13 +73,13 @@ const sketch = ({ width, height }) => {
         const curr = points[r * cols + c];
         const next = points[r * cols + c + 1];
 
-        const mx = curr.x + (next.x - curr.x) * 0.5;
-        const my = curr.y + (next.y - curr.y) * 0.5; 
+        const mx = curr.x + (next.x - curr.x) * 0.05 + 22;
+        const my = curr.y + (next.y - curr.y) * 0.05 + 22; 
         
         if (!c) [lastx, lasty] = [curr.x, curr.y];
 
         context.beginPath();
-        context.lineWidth = curr.lineWidth;
+        context.lineWidth = curr.lineWidth * 0.1;
         context.strokeStyle = curr.color;
 
         context.moveTo(lastx, lasty);
@@ -103,6 +111,9 @@ class Point {
     this.y = y;
     this.lineWidth = lineWidth;
     this.color = color;
+
+    this.ix = x;
+    this.iy = y;
   }
 
   draw(context) {
