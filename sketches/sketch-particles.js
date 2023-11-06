@@ -3,6 +3,7 @@ const random = require('canvas-sketch-util/random');
 const math = require('canvas-sketch-util/math');
 const eases = require('eases');
 const colormap = require('colormap');
+const interpolate = require('interpolate');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
@@ -16,16 +17,33 @@ const colors = colormap({
   nshades: 20,
 });
 let elCanvas;
+let imgA, imgB;
 
 console.log({colors});
 
 const sketch = ({ width, height, canvas }) => {
   let x, y, particle, radius;
-  const pos = [];
+  const imgACanvas = document.createElement('canvas');
+  const imgAContext = imgACanvas.getContext('2d');
 
-  const numCircles = 15;
-  const gapCircle = 8;
-  const gapDot = 4;
+  const imgBCanvas = document.createElement('canvas');
+  const imgBContext = imgBCanvas.getContext('2d');
+
+  imgACanvas.width = imgA.width;
+  imgACanvas.height = imgA.height;
+
+  imgBCanvas.width = imgB.width;
+  imgBCanvas.height = imgB.height;
+
+  imgAContext.drawImage(imgA, 0, 0);
+  imgBContext.drawImage(imgB, 0, 0);
+
+  const imgAData = imgAContext.getImageData(0, 0, imgA.width, imgA.height).data;
+  const imgBData = imgBContext.getImageData(0, 0, imgB.width, imgB.height).data;
+
+  const numCircles = 35;
+  const gapCircle = 3;
+  const gapDot = 1;
   let dotRadius = 12;
   let cirRadius = 0;
   const fitRadius = dotRadius;
@@ -37,6 +55,7 @@ const sketch = ({ width, height, canvas }) => {
     const circumference = Math.PI * 2 * cirRadius;
     const numFit = i ? Math.floor(circumference / (fitRadius * 2 + gapDot)) : 1;
     const fitSlice = Math.PI * 2 / numFit;
+    let ix, iy, idx, r, g, b, colA, colB, colMap;
 
     for (let j = 0; j < numFit; j++) {
       const theta = fitSlice * j;
@@ -47,9 +66,29 @@ const sketch = ({ width, height, canvas }) => {
       x += width * 0.5;
       y += height * 0.5;
 
-      radius = dotRadius;
+      ix = Math.floor((x / width) * imgA.width);
+      iy = Math.floor((y / height) * imgA.height);
+      idx = (iy * imgA.width + ix) * 4;
 
-      particle = new Particle({ x, y, radius });
+      r = imgAData[idx + 0];
+      g = imgAData[idx + 1];
+      b = imgAData[idx + 2];
+      colA = `rgb(${r}, ${g}, ${b})`;
+
+      radius = math.mapRange(r, 0, 255, 1, 12);
+
+      ix = Math.floor((x / width) * imgB.width);
+      iy = Math.floor((y / height) * imgB.height);
+      idx = (iy * imgB.width + ix) * 4;
+
+      r = imgBData[idx + 0];
+      g = imgBData[idx + 1];
+      b = imgBData[idx + 2];
+      colB = `rgb(${r}, ${g}, ${b})`;
+
+      colMap = interpolate([colA, colB]);
+
+      particle = new Particle({ x, y, radius, colMap });
       particles.push(particle);
     }
 
@@ -60,6 +99,8 @@ const sketch = ({ width, height, canvas }) => {
   return ({ context, width, height }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
+
+    context.drawImage(imgACanvas, 0, 0);
 
     particles.sort((a, b) => a.scale - b.scale);
 
@@ -95,10 +136,26 @@ const onMouseUp = () => {
   cursor.y = 9999;
 }
 
-canvasSketch(sketch, settings);
+const loadImage = async (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject();
+    img.src = url;
+  });
+}
+
+const start = async () => {
+  imgA = await loadImage('images/image-01.jpg');
+  imgB = await loadImage('images/image-02.jpg');
+
+  canvasSketch(sketch, settings);
+};
+
+start();
 
 class Particle {
-  constructor({ x, y, radius = 10 }) {
+  constructor({ x, y, radius = 10, colMap }) {
     this.x = x;
     this.y = y;
 
@@ -113,7 +170,8 @@ class Particle {
 
     this.radius = radius;
     this.scale = 1;
-    this.color = colors[0];
+    this.colMap = colMap;
+    this.color = colMap(0);
 
     this.minDist = random.range(100, 200);
     this.pushFactor = random.range(0.01, 0.02);
@@ -134,8 +192,10 @@ class Particle {
 
     this.scale = math.mapRange(dd, 0, 200, 1, 5);
 
-    idxColor = Math.floor(math.mapRange(dd, 0, 200, colors.length - 1, 0, true));
-    this.color = colors[idxColor];
+    // idxColor = Math.floor(math.mapRange(dd, 0, 200, colors.length - 1, 0, true));
+    // this.color = colors[idxColor];
+
+    this.color = this.colMap(math.mapRange(dd, 0, 200, 0, 1, true));
 
     dx = this.x - cursor.x;
     dy = this.y - cursor.y;
